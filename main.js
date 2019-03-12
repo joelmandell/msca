@@ -40,24 +40,7 @@ function createCustomElement(ExpComponent) {
                     const shadowRoot = this.attachShadow({mode: 'closed'})
                     shadowRoot.innerHTML = ExpComponent["template"]
 
-                    //Leta efter shorthand-attributes.
-                    Array.from(shadowRoot.children).forEach((c) => {
-                        Array.from(c.attributes).forEach( (a) => {
-                            if(a.name == "@click")
-                            {
-                                ///Lägg till onclick event.
-                                c.addEventListener("click", e => {
-
-                                    //Hackish: SKall fixa detta mer hårdare kontrollerat med REGEX senare.
-                                    let p = a.value.split("(").map( s => s.replace(")","").replace(/'/g,""))
-
-                                    let args = p.splice(1,1)
-
-                                    ExpComponent["methods"][p[0]].apply(null,args)   
-                                });
-                            }
-                        })
-                    })
+                    shortHandAttr(shadowRoot,ExpComponent)
                 }
             })
             
@@ -66,6 +49,28 @@ function createCustomElement(ExpComponent) {
     }
 }
 
+function shortHandAttr(els,ExpComponent) {
+    //Todo fixa så att den gö nullcheck o annat...
+
+     //Leta efter shorthand-attributes.
+     Array.from(els.children).forEach((c) => {
+        Array.from(c.attributes).forEach( (a) => {
+            if(a.name == "@click")
+            {
+                ///Lägg till onclick event.
+                c.addEventListener("click", e => {
+
+                    //Hackish: SKall fixa detta mer hårdare kontrollerat med REGEX senare.
+                    let p = a.value.split("(").map( s => s.replace(")","").replace(/'/g,""))
+
+                    let args = p.splice(1,1)
+
+                    ExpComponent["methods"][p[0]].apply(null,args)   
+                });
+            }
+        })
+    })
+}
 
 let nComp = createCustomElement({
     data: {
@@ -76,6 +81,7 @@ let nComp = createCustomElement({
     methods: {
         rubrik: function(el) {
             console.log("RUBRIK I RUBIK:",el)
+            alert(el)
         }
     },
     template:`<h3 @click="rubrik('test')">TESTAR</h3>`
