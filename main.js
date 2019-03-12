@@ -14,9 +14,6 @@ function missingProp(err)
     return
 }
 
-
-
-
 function createCustomElement(ExpComponent) {
     if(isObject(ExpComponent)) {
         
@@ -25,7 +22,7 @@ function createCustomElement(ExpComponent) {
 
         // const el = document.querySelector(ExpComponent["el"])
 
-        console.log(ExpComponent)
+
         //Har data props
         if(hasProp(ExpComponent,"data"))
         {
@@ -40,12 +37,28 @@ function createCustomElement(ExpComponent) {
                 constructor() {
                     super();
             
-                    const shadowRoot = this.attachShadow({mode: 'closed'}).innerHTML = ExpComponent["template"]
-                    this.addEventListener("click", e => {
-                        console.log("SPOTTTA UT DET NUT")
-                    });
+                    const shadowRoot = this.attachShadow({mode: 'closed'})
+                    shadowRoot.innerHTML = ExpComponent["template"]
+
+                    //Leta efter shorthand-attributes.
+                    Array.from(shadowRoot.children).forEach((c) => {
+                        Array.from(c.attributes).forEach( (a) => {
+                            if(a.name == "@click")
+                            {
+                                ///Lägg till onclick event.
+                                c.addEventListener("click", e => {
+
+                                    //Hackish: SKall fixa detta mer hårdare kontrollerat med REGEX senare.
+                                    let p = a.value.split("(").map( s => s.replace(")","").replace(/'/g,""))
+
+                                    let args = p.splice(1,1)
+
+                                    ExpComponent["methods"][p[0]].apply(null,args)   
+                                });
+                            }
+                        })
+                    })
                 }
-            
             })
             
             return ExpComponent
@@ -60,7 +73,12 @@ let nComp = createCustomElement({
     },
     compName:"my-comp",
     el:"body",
-    template:"<h3>TESTAR</h3>"
+    methods: {
+        rubrik: function(el) {
+            console.log("RUBRIK I RUBIK:",el)
+        }
+    },
+    template:`<h3 @click="rubrik('test')">TESTAR</h3>`
 })
 
 let f = createCustomElement({
