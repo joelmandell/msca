@@ -1,19 +1,3 @@
-if ('ondevicelight' in window) {
-    window.addEventListener('devicelight', function(event) {
-        var body = document.querySelector('body');
-        if (event.value < 50) {
-        body.classList.add('darklight');
-        body.classList.remove('brightlight');
-        } else {
-        body.classList.add('brightlight');
-        body.classList.remove('darklight');
-        }
-    });
-} else {
-    console.log('devicelight event not supported');
-}
-
-
 function isObject(o)
 {
     return typeof o === 'object'
@@ -31,36 +15,17 @@ function missingProp(err)
 }
 
 
-class BaseComponent extends HTMLElement {
-    constructor() {
-        super();
 
-        this.addEventListener("click", e => {
-            console.log("SPOTTTA UT DET NUT")
-          });
-    }
 
-    set land(data) {
-        this.data = data
-
-        this.outerHTML += "LAND:" + this.data
-    }
-
-    get land() {
-        this.outerHTML += "LAND:" + this.data
-
-        return this.data
-    }
-}
-
-function createCustomElment(ExpComponent) {
+function createCustomElement(ExpComponent) {
     if(isObject(ExpComponent)) {
         
         //Måste ha en el att fästa sig på...
         if(!hasProp(ExpComponent,"el")) return missingProp("Du saknar el-property på exp-objektet.")
 
-        const el = document.querySelector(ExpComponent["el"])
+        // const el = document.querySelector(ExpComponent["el"])
 
+        console.log(ExpComponent)
         //Har data props
         if(hasProp(ExpComponent,"data"))
         {
@@ -71,17 +36,17 @@ function createCustomElment(ExpComponent) {
         if(hasProp(ExpComponent,"compName"))
         {
             //Skapa en component som dom'en kan använda nu.
-            let newComp = BaseComponent
-
-            window.customElements.define(ExpComponent["compName"],newComp)
+            window.customElements.define(ExpComponent["compName"],class extends HTMLElement {
+                constructor() {
+                    super();
             
-            let newEl = document.createElement("my-comp")
-            newEl.setAttribute("data-mintext","")
-
-            newEl.setAttribute("land","sverige")
-
-            newEl.innerHTML = "MY CUSTOM COMPOONTENT: GÖR DIG I ORDNING NU"
-            el.appendChild(newEl)
+                    const shadowRoot = this.attachShadow({mode: 'closed'}).innerHTML = ExpComponent["template"]
+                    this.addEventListener("click", e => {
+                        console.log("SPOTTTA UT DET NUT")
+                    });
+                }
+            
+            })
             
             return ExpComponent
         }
@@ -89,15 +54,24 @@ function createCustomElment(ExpComponent) {
 }
 
 
-let nComp = createCustomElment({
+let nComp = createCustomElement({
     data: {
         test:"YOLO"
     },
     compName:"my-comp",
-    el:"body"
+    el:"body",
+    template:"<h3>TESTAR</h3>"
 })
 
-console.log(nComp)
+let f = createCustomElement({
+    data: {
+        test:"tOLO"
+    },
+    compName:"anna-dist",
+    template:"<p>HOLA</p>",
+    el:"body"
+});
+
 
 document.onreadystatechange = (ev) => {
     compileDataProps()
